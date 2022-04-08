@@ -32,9 +32,26 @@ class FrostingStepper:
             print('Defaulting to stepper #1 as stepper number not recognized.')
             self.stepper_object = self.kit.stepper1
 
+    def step(self, dir: int):
+        """
+        Steps the motor one step, in either 1 (positive) or -1 (negative) direction
+        :param dir: 1 for forward, -1 for reverse
+        :return:
+        """
+        if dir < 0:
+            direction = stepper.BACKWARD
+        elif dir > 0:
+            direction = stepper.FORWARD
+        else:
+            print('Stepper not moving either direction')
+            return
+
+        self.stepper_object.onestep(direction=direction, style=stepper.DOUBLE)
+        return
+
     def move(self, dist: float, speed: float):
         """
-        Moves a motor dist mm at speed mm/s
+        Moves a motor dist mm at speed mm/s. Blocking while moving
         :param dist: Distance in mm, can be negative
         :param speed: Speed in mm/s to move at
         :return: None

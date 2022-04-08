@@ -63,7 +63,7 @@ class FrostingMainBoard:
     def home_x_axis(self, timeout: int = 10, backoff_mm: int = -2) -> bool:
         """
         Homes x axis
-        :timeout: default number of seconds before timing out with no home
+        :param timeout: default number of seconds before timing out with no home
         :return: True if homed, False otherwise
         """
         # move x axis to limit switch
@@ -84,7 +84,7 @@ class FrostingMainBoard:
     def home_y_axis(self, timeout: int = 10, backoff_mm: int = -2) -> bool:
         """
         Homes y axis
-        :timeout: default number of seconds before timing out with no home
+        :param timeout: default number of seconds before timing out with no home
         :return: True if homed, False otherwise
         """
         # move y axis to limit switch
@@ -116,7 +116,7 @@ class FrostingMainBoard:
         else:
             return False
 
-    def x_y_move(self, dx: float, dy: float, speed: int):
+    def x_y_move(self, dx: float, dy: float, speed: int, min_delay: float = 0.01):
         """
         Moves x and y stepper motors linearly a
         distance dx and dy respectively, at speed
@@ -125,6 +125,7 @@ class FrostingMainBoard:
         :param dy: distance to move in y (can be negative)
         :param dx: distance to move in x (can be negative)
         :param speed: speed in mm/s over whole line
+        :param min_delay: minimum delay time between loops
         :return: None
         """
         if dx > 0:
@@ -141,30 +142,22 @@ class FrostingMainBoard:
         else:
             dir_y = 0
 
-        d = np.sqrt(dx**2 + dy**2)
+        d = np.sqrt(dx ** 2 + dy ** 2)
         runtime = d / speed
+        iterations = int(np.round(runtime / min_delay))
 
         steps_x = int(abs(dx) * self.x_axis.steps_per_mm)
         steps_y = int(abs(dy) * self.y_axis.steps_per_mm)
 
-        steps_lcm = np.lcm(steps_x, steps_y)
-        delay = runtime / steps_lcm
+        steps_x_per_iter = int(np.round(steps_x / iterations))
+        steps_y_per_iter = int(np.round(steps_y / iterations))
 
-        for i in range(steps_lcm):
-            if i % (steps_lcm / steps_x) == 0 and i % (steps_lcm / steps_y) == 0:
-                # step both x and y
+        for i in range(iterations):
+            for j in range(steps_x_per_iter):
                 self.x_axis.step(dir_x)
+            for k in range(steps_y_per_iter):
                 self.y_axis.step(dir_y)
-            elif i % (steps_lcm / steps_x) == 0:
-                # step x
-                self.x_axis.step(dir_x)
-            elif i % (steps_lcm / steps_y) == 0:
-                # step y
-                self.y_axis.step(dir_y)
-            else:
-                # don't step, just pause
-                pass
-            time.sleep(delay)
+            time.sleep(min_delay)
 
         return
 

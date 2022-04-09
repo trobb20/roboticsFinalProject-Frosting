@@ -2,10 +2,14 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+import time
 
-x_steps_per_mm = 80
-y_steps_per_mm = x_steps_per_mm
-
+# data logging
+global bigListX, bigListY, iterListX, iterListY
+bigListX = []
+bigListY = []
+iterListX = []
+iterListY = []
 
 def x_y_move(loc: np.ndarray, dx: float, dy: float, speed: int, min_delay: float = 0.01):
     """
@@ -65,11 +69,8 @@ def x_y_move(loc: np.ndarray, dx: float, dy: float, speed: int, min_delay: float
         y_mod = 1
 
     print('On this move with dx: %s, dy: %s' % (str(dx), str(dy)))
-    print('%d iterations, %d %d steps x, y, %d %d steps/iter x, y'
+    print('## %d iterations ## %d %d steps x, y ## %d %d steps/iter x, y ##'
           % (iterations, steps_x, steps_y, steps_x_per_iter, steps_y_per_iter))
-
-    # plt.figure()
-    # plt.title('Move: %s %s'%(str(dx), str(dy)))
 
     for i in range(iterations):
         # New way
@@ -85,7 +86,10 @@ def x_y_move(loc: np.ndarray, dx: float, dy: float, speed: int, min_delay: float
                 loc[1] = loc[1] + (dir_y / y_steps_per_mm)
             else:
                 pass
-            #plt.scatter(loc[0], loc[1], marker='o', color='b')
+            bigListX.append(loc[0])
+            bigListY.append(loc[1])
+        iterListX.append(loc[0])
+        iterListY.append(loc[1])
         # old way
         # for j in range(steps_x_per_iter):
         #     loc[0] = loc[0] + (dir_x / x_steps_per_mm)
@@ -94,7 +98,6 @@ def x_y_move(loc: np.ndarray, dx: float, dy: float, speed: int, min_delay: float
         #     loc[1] = loc[1] + (dir_y / y_steps_per_mm)
         #     plt.scatter(loc[0], loc[1], marker='o', color='b')
         # time.sleep(min_delay)
-    #plt.show()
 
     return loc
 
@@ -110,9 +113,10 @@ def exponential(x):
 def spiral(theta):
     return 10 * theta
 
+# Testing
 
 # Polar
-theta = np.linspace(0.1, 4 * np.pi, 10)
+theta = np.linspace(0.1, 4 * np.pi, 50)
 r = spiral(theta)
 X = r * np.cos(theta)
 Y = r * np.sin(theta)
@@ -121,34 +125,48 @@ Y = r * np.sin(theta)
 # X = np.linspace(0.1, 100, 10)
 # Y = exponential(X)
 
+# Path
 des = np.array([X, Y]).T
-
 pos = np.empty(np.shape(des))
 loc = np.zeros(2)
 pos[0, :] = loc
 
+# Movement params
 speed = 50
+x_steps_per_mm = 25
+y_steps_per_mm = x_steps_per_mm
 
+# Simulation loop
 for i in range(len(pos)):
     dx = des[i, 0] - loc[0]
     dy = des[i, 1] - loc[1]
-    new_loc = x_y_move(loc, dx, dy, speed)
+    new_loc = x_y_move(loc, dx, dy, speed, min_delay=.01)
     pos[i, :] = new_loc
     loc = new_loc
 
+# Data processing and plotting
 num = [i for i in range(len(des))]
 err = [np.sqrt((des[i, 0] - pos[i, 0]) ** 2 + (des[i, 1] - pos[i, 1]) ** 2) for i in range(len(des))]
 
-fig, (ax1, ax2) = plt.subplots(1, 2)
-fig.set_size_inches(10, 4)
+fig, (ax1, ax2, ax3) = plt.subplots(1, 3)
+fig.set_size_inches(12, 4)
+
 ax1.plot(des[:, 0], des[:, 1])
 ax1.plot(pos[:, 0], pos[:, 1])
 ax1.set_title('Stepper desired path vs simulation: %s steps/mm' % str(x_steps_per_mm))
 ax1.set_xlabel('X position (mm)')
 ax1.set_ylabel('Y position (mm)')
 ax1.legend(['Desired path', 'Simulated result'])
-ax2.set_title('Error vs movement')
-ax2.set_xlabel('Movement #')
-ax2.set_ylabel('Absolute error (mm)')
-ax2.plot(num, err, 'r')
+
+ax2.plot(bigListX, bigListY, color='k')
+ax2.scatter(iterListX, iterListY, marker='o', color='g')
+ax2.set_title('Steps + Loop Iterations on Path')
+ax2.set_xlabel('X position (mm)')
+ax2.set_ylabel('Y position (mm)')
+ax2.legend(['Individual Steps', 'Loop Iterations'])
+
+ax3.set_title('Error vs movement')
+ax3.set_xlabel('Movement #')
+ax3.set_ylabel('Absolute error (mm)')
+ax3.plot(num, err, 'r')
 plt.show()

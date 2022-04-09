@@ -46,7 +46,7 @@ class FrostingStepper:
             print('Stepper not moving either direction')
             return
 
-        self.stepper_object.onestep(direction=direction, style=stepper.DOUBLE)
+        self.stepper_object.onestep(direction=direction, style=stepper.INTERLEAVE)
         return
 
     def move(self, dist: float, speed: float):
@@ -67,7 +67,7 @@ class FrostingStepper:
             return
 
         for i in range(steps):
-            self.stepper_object.onestep(direction=direction, style=stepper.DOUBLE)
+            self.stepper_object.onestep(direction=direction, style=stepper.INTERLEAVE)
             time.sleep(delay)
 
         return

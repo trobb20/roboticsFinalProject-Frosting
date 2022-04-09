@@ -142,21 +142,56 @@ class FrostingMainBoard:
         else:
             dir_y = 0
 
+        # Calculate total distance to move and number of iterations needed
+        # to get there
         d = np.sqrt(dx ** 2 + dy ** 2)
         runtime = d / speed
         iterations = int(np.round(runtime / min_delay))
+        if iterations == 0:
+            print('Movement too small')
+            return
 
+        # Calculate number of steps needed to go in x and y
         steps_x = int(abs(dx) * self.x_axis.steps_per_mm)
         steps_y = int(abs(dy) * self.y_axis.steps_per_mm)
 
+        # Divide those steps into each loop iteration
         steps_x_per_iter = int(np.round(steps_x / iterations))
         steps_y_per_iter = int(np.round(steps_y / iterations))
 
+        # Within the loop iteration, interlace x and y steps using lcm of step counts
+        if steps_x_per_iter > 0 and steps_y_per_iter > 0:
+            iter_lcm = np.lcm(steps_x_per_iter, steps_y_per_iter)
+            x_mod = iter_lcm // steps_x_per_iter
+            y_mod = iter_lcm // steps_y_per_iter
+        elif steps_x_per_iter == 0:
+            iter_lcm = steps_y_per_iter
+            x_mod = 0.1  # will never trigger
+            y_mod = 1
+        elif steps_y_per_iter == 0:
+            iter_lcm = steps_x_per_iter
+            x_mod = 1
+            y_mod = 0.1  # will never trigger
+        else:
+            iter_lcm = 0
+            x_mod = 1
+            y_mod = 1
+
+        # loop through each iteration in the move
         for i in range(iterations):
-            for j in range(steps_x_per_iter):
-                self.x_axis.step(dir_x)
-            for k in range(steps_y_per_iter):
-                self.y_axis.step(dir_y)
+            # loop through lcm
+            for j in np.arange(1, iter_lcm + 1, 1):
+                step_x = j % x_mod == 0
+                step_y = j % y_mod == 0
+                if step_x and step_y:
+                    self.x_axis.step(dir_x)
+                    self.y_axis.step(dir_y)
+                elif step_x:
+                    self.x_axis.step(dir_x)
+                elif step_y:
+                    self.y_axis.step(dir_y)
+                else:
+                    pass
             time.sleep(min_delay)
 
         return

@@ -206,6 +206,6 @@ class FrostingMainBoard:
     def draw(self, coordinates: np.ndarray):
         moves = len(coordinates)
         for i in range(moves):
-            move = moves[i, :]
+            move = coordinates[i, :]
             self.go_to_location(move)
         return

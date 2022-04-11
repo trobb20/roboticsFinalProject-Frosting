@@ -202,3 +202,10 @@ class FrostingMainBoard:
         self.x_y_move(delta[0], delta[1], self.default_speed)
         self.location = go_to
         return
+
+    def draw(self, coordinates: np.ndarray):
+        moves = len(coordinates)
+        for i in range(moves):
+            move = moves[i, :]
+            self.go_to_location(move)
+        return

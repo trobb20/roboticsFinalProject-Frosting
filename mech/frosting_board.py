@@ -196,8 +196,9 @@ class FrostingMainBoard:
 
         return
 
-    def go_to_location(self, go_to: np.ndarray) -> np.ndarray:
+    def go_to_location(self, go_to: np.ndarray):
         # Move to an array of x, y based on our location
         delta = go_to - self.location
         self.x_y_move(delta[0], delta[1], self.default_speed)
-        return self.location + delta
+        self.location = go_to
+        return

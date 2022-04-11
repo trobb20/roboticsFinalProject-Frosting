@@ -20,8 +20,8 @@ import time
 class FrostingMainBoard:
     def __init__(self):
         # Parameters
-        x_steps_per_mm = 1
-        y_steps_per_mm = 1
+        x_steps_per_mm = 30
+        y_steps_per_mm = 30
         self.default_speed = 20
         x_endstop_pin = 23  # GPIO23
         y_endstop_pin = 24  # GPIO24

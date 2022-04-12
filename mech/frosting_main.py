@@ -16,11 +16,11 @@ import numpy as np
 def main():
     main_board = FrostingMainBoard()
 
-    drawing = np.array([0, 0],
+    drawing = np.array(([0, 0],
                     [50, 0],
                     [50, 50],
                     [0, 50],
-                    [0, 0])
+                    [0, 0]))
 
     main_board.draw(drawing)
     return

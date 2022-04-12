@@ -118,7 +118,7 @@ class FrostingMainBoard:
         else:
             return False
 
-    def x_y_move(self, dx: float, dy: float, speed: int, min_delay: float = 0.01):
+    def x_y_move(self, dx: float, dy: float):
         """
         Moves x and y stepper motors linearly a
         distance dx and dy respectively, at speed
@@ -126,8 +126,6 @@ class FrostingMainBoard:
         d = sqrt(dx^2 + dy^2)
         :param dy: distance to move in y (can be negative)
         :param dx: distance to move in x (can be negative)
-        :param speed: speed in mm/s over whole line
-        :param min_delay: minimum delay time between loops
         :return: None
         """
         if dx > 0:
@@ -144,32 +142,21 @@ class FrostingMainBoard:
         else:
             dir_y = 0
 
-        # Calculate total distance to move and number of iterations needed
-        # to get there
-        iterations = 1
-        if iterations == 0:
-            print('Movement too small')
-            return
-
         # Calculate number of steps needed to go in x and y
         steps_x = int(abs(dx) * self.x_axis.steps_per_mm)
         steps_y = int(abs(dy) * self.y_axis.steps_per_mm)
 
-        # Divide those steps into each loop iteration
-        steps_x_per_iter = steps_x#int(np.round(steps_x / iterations))
-        steps_y_per_iter = steps_y#int(np.round(steps_y / iterations))
-
         # Within the loop iteration, interlace x and y steps using lcm of step counts
-        if steps_x_per_iter > 0 and steps_y_per_iter > 0:
-            iter_lcm = np.lcm(steps_x_per_iter, steps_y_per_iter)
-            x_mod = iter_lcm // steps_x_per_iter
-            y_mod = iter_lcm // steps_y_per_iter
-        elif steps_x_per_iter == 0:
-            iter_lcm = steps_y_per_iter
+        if steps_x > 0 and steps_y > 0:
+            iter_lcm = np.lcm(steps_x, steps_y)
+            x_mod = iter_lcm // steps_x
+            y_mod = iter_lcm // steps_y
+        elif steps_x == 0:
+            iter_lcm = steps_y
             x_mod = 0.1  # will never trigger
             y_mod = 1
-        elif steps_y_per_iter == 0:
-            iter_lcm = steps_x_per_iter
+        elif steps_y == 0:
+            iter_lcm = steps_x
             x_mod = 1
             y_mod = 0.1  # will never trigger
         else:
@@ -177,32 +164,28 @@ class FrostingMainBoard:
             x_mod = 1
             y_mod = 1
 
-        # loop through each iteration in the move
-        for i in range(iterations):
-            # loop through lcm
-            for j in np.arange(1, iter_lcm + 1, 1):
-                step_x = j % x_mod == 0
-                step_y = j % y_mod == 0
-                if step_x and step_y:
-                    self.x_axis.step(dir_x)
-                    self.y_axis.step(dir_y)
-                elif step_x:
-                    self.x_axis.step(dir_x)
-                elif step_y:
-                    self.y_axis.step(dir_y)
-                else:
-                    pass
-            #time.sleep(min_delay)
+        # loop through lcm
+        for j in np.arange(1, iter_lcm + 1, 1):
+            step_x = j % x_mod == 0
+            step_y = j % y_mod == 0
+            if step_x and step_y:
+                self.x_axis.step(dir_x)
+                self.y_axis.step(dir_y)
+            elif step_x:
+                self.x_axis.step(dir_x)
+            elif step_y:
+                self.y_axis.step(dir_y)
+            else:
+                pass
 
         return
 
-    def go_and_extrude(self, command: np.ndarray, speed: int, extruder: FrostingDCMotor):
+    def go_and_extrude(self, command: np.ndarray, extruder: FrostingDCMotor):
         """
         Goes to a location [x,y] using the x_y_move function.
         Extrudes with motor throttle e.
         Updates board's location after moving
         :param command: [x,y,e] coordinates to move to and extrude
-        :param speed: speed at which to move
         :param extruder: which extruder to extrude with
         :return: None
         """
@@ -211,12 +194,12 @@ class FrostingMainBoard:
         dx, dy = go_to - self.location
 
         extruder.drive(e)
-        self.x_y_move(dx, dy, speed)
+        self.x_y_move(dx, dy)
 
         self.location = go_to
         return
 
-    def draw(self, commands: np.ndarray, speed: int, extruder: FrostingDCMotor):
+    def draw(self, commands: np.ndarray, extruder: FrostingDCMotor):
         """
         Draws based on an array of commands of the format:
             [[x1, y1, e1],
@@ -226,12 +209,11 @@ class FrostingMainBoard:
         Using the go_to_location function.
         :param commands: Coordinates and extruder values
          of format [[x1, y1, e1], ...[xn, yn, en]]
-        :param speed: speed at which to move
         :param extruder: extruder object to drive
         :return: None
         """
         moves = len(commands)
         for i in range(moves):
-            self.go_and_extrude(commands[i, :], speed, extruder)
+            self.go_and_extrude(commands[i, :], extruder)
         extruder.stop()
         return

@@ -11,7 +11,7 @@ bigListY = []
 iterListX = []
 iterListY = []
 
-def x_y_move(loc: np.ndarray, dx: float, dy: float, speed: int, min_delay: float = 0.01):
+def x_y_move(loc: np.ndarray, dx: float, dy: float):
     """
     Moves x and y stepper motors linearly a
     distance dx and dy respectively, at speed
@@ -38,9 +38,7 @@ def x_y_move(loc: np.ndarray, dx: float, dy: float, speed: int, min_delay: float
     else:
         dir_y = 0
 
-    d = np.sqrt(dx ** 2 + dy ** 2)
-    runtime = d / speed
-    iterations = int(np.round(runtime / min_delay))
+    iterations = 1
     if iterations == 0:
         print('Movement too small')
         return loc
@@ -68,7 +66,7 @@ def x_y_move(loc: np.ndarray, dx: float, dy: float, speed: int, min_delay: float
         x_mod = 1
         y_mod = 1
 
-    print('On this move with dx: %s, dy: %s' % (str(dx), str(dy)))
+    print('On this move with, dx: %s, dy: %s' % (str(dx), str(dy)))
     print('## %d iterations ## %d %d steps x, y ## %d %d steps/iter x, y ##'
           % (iterations, steps_x, steps_y, steps_x_per_iter, steps_y_per_iter))
 
@@ -90,14 +88,6 @@ def x_y_move(loc: np.ndarray, dx: float, dy: float, speed: int, min_delay: float
             bigListY.append(loc[1])
         iterListX.append(loc[0])
         iterListY.append(loc[1])
-        # old way
-        # for j in range(steps_x_per_iter):
-        #     loc[0] = loc[0] + (dir_x / x_steps_per_mm)
-        #     plt.scatter(loc[0], loc[1], marker='o', color='b')
-        # for k in range(steps_y_per_iter):
-        #     loc[1] = loc[1] + (dir_y / y_steps_per_mm)
-        #     plt.scatter(loc[0], loc[1], marker='o', color='b')
-        # time.sleep(min_delay)
 
     return loc
 
@@ -116,7 +106,7 @@ def spiral(theta):
 # Testing
 
 # Polar
-theta = np.linspace(0.1, 4 * np.pi, 50)
+theta = np.linspace(0.1, 2 * np.pi, 50)
 r = spiral(theta)
 X = r * np.cos(theta)
 Y = r * np.sin(theta)
@@ -127,6 +117,11 @@ Y = r * np.sin(theta)
 
 # Path
 des = np.array([X, Y]).T
+# des = np.array(([0, 0],
+#                     [50, 0],
+#                     [50, 50],
+#                     [0, 50],
+#                     [0, 0]))
 pos = np.empty(np.shape(des))
 loc = np.zeros(2)
 pos[0, :] = loc
@@ -140,7 +135,7 @@ y_steps_per_mm = x_steps_per_mm
 for i in range(len(pos)):
     dx = des[i, 0] - loc[0]
     dy = des[i, 1] - loc[1]
-    new_loc = x_y_move(loc, dx, dy, speed, min_delay=.01)
+    new_loc = x_y_move(loc, dx, dy)
     pos[i, :] = new_loc
     loc = new_loc
 

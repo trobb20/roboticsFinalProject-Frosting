@@ -32,7 +32,7 @@ def split_shapes(commands: list, cutoff_distance: int):
 
 def main():
     main_board = FrostingMainBoard()
-    #    X  Y  E
+    #                       X  Y  E
     # drawing = np.array(([0, 0, 0],
     #                     [50, 0, 1],
     #                     [50, 50, 0.7],
@@ -47,7 +47,7 @@ def main():
 
     drawing = np.array(([X, Y, E])).T
 
-    main_board.draw(drawing, int(input('Speed: ')), main_board.white_extruder)
+    main_board.draw(drawing, main_board.white_extruder)
     return
 
 

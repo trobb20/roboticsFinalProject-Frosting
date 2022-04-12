@@ -12,11 +12,11 @@
 
 from frosting_board import FrostingMainBoard
 import numpy as np
+import pandas as pd
 
 
-def split_shapes(commands: list, cutoff_distance: int):
-    shapes = []
-    shapes.append([commands[0]])
+def split_shapes(commands: list, cutoff_distance: int) -> np.ndarray:
+    shapes = [[commands[0]]]
     shape_iteration = 0
 
     for i in range(len(commands) - 1):
@@ -27,27 +27,32 @@ def split_shapes(commands: list, cutoff_distance: int):
 
         shapes[shape_iteration].append(commands[i + 1])
 
-    return shapes
+    return np.asarray(shapes)
 
 
 def main():
     main_board = FrostingMainBoard()
+
+    # Square test
     #                       X  Y  E
     # drawing = np.array(([0, 0, 0],
-    #                     [50, 0, 1],
-    #                     [50, 50, 0.7],
+    #                     [50, 0, 0],
+    #                     [50, 50, 0],
     #                     [0, 50, 0],
     #                     [0, 0, 0]))
 
-    theta = np.linspace(0.1, 1 * np.pi, 50)
-    r = 10 * theta
-    X = r * np.cos(theta)
-    Y = r * np.sin(theta)
-    E = np.zeros(np.size(X))
+    # Spiral test
+    # theta = np.linspace(0.1, 1 * np.pi, 50)
+    # r = 10 * theta
+    # X = r * np.cos(theta)
+    # Y = r * np.sin(theta)
+    # E = np.zeros(np.size(X))
+    # drawing = np.array(([X, Y, E])).T
 
-    drawing = np.array(([X, Y, E])).T
+    drawing = pd.read_csv('coords.csv').values
 
     main_board.draw(drawing, main_board.white_extruder)
+
     return
 
 

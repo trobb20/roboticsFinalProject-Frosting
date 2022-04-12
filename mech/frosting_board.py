@@ -196,19 +196,20 @@ class FrostingMainBoard:
 
         return
 
-    def go_to_location(self, go_to: np.ndarray):
+    def go_to_location(self, go_to: np.ndarray, speed: int):
         """
         Goes to a location [x,y] using the x_y_move function.
         Updates board's location after moving
         :param go_to: [x,y] coordinates to move to
+        :param speed: speed at which to move
         :return: None
         """
         delta = go_to - self.location
-        self.x_y_move(delta[0], delta[1], self.default_speed)
+        self.x_y_move(delta[0], delta[1], speed)
         self.location = go_to
         return
 
-    def draw(self, coordinates: np.ndarray):
+    def draw(self, coordinates: np.ndarray, speed: int):
         """
         Draws based on an array of coordinates of the format:
             [[x1, y1],
@@ -217,10 +218,10 @@ class FrostingMainBoard:
              [xn, yn]]
         Using the go_to_location function.
         :param coordinates: Coordinates of format [[x1, y1], ...[xn, yn]]
+        :param speed: speed at which to move
         :return: None
         """
         moves = len(coordinates)
         for i in range(moves):
-            move = coordinates[i, :]
-            self.go_to_location(move)
+            self.go_to_location(coordinates[i, :], speed)
         return

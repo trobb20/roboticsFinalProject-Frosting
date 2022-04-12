@@ -146,9 +146,7 @@ class FrostingMainBoard:
 
         # Calculate total distance to move and number of iterations needed
         # to get there
-        d = np.sqrt(dx ** 2 + dy ** 2)
-        runtime = d / speed
-        iterations = int(np.round(runtime / min_delay))
+        iterations = 1
         if iterations == 0:
             print('Movement too small')
             return
@@ -158,8 +156,8 @@ class FrostingMainBoard:
         steps_y = int(abs(dy) * self.y_axis.steps_per_mm)
 
         # Divide those steps into each loop iteration
-        steps_x_per_iter = int(np.round(steps_x / iterations))
-        steps_y_per_iter = int(np.round(steps_y / iterations))
+        steps_x_per_iter = steps_x#int(np.round(steps_x / iterations))
+        steps_y_per_iter = steps_y#int(np.round(steps_y / iterations))
 
         # Within the loop iteration, interlace x and y steps using lcm of step counts
         if steps_x_per_iter > 0 and steps_y_per_iter > 0:

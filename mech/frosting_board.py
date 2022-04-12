@@ -23,8 +23,8 @@ class FrostingMainBoard:
         x_steps_per_mm = 25
         y_steps_per_mm = 25
         self.default_speed = 20
-        x_endstop_pin = 23  # GPIO23
-        y_endstop_pin = 24  # GPIO24
+        self.x_endstop = 23  # GPIO23
+        self.y_endstop = 24  # GPIO24
 
         # Spatial planning
         self.x_position = 0
@@ -55,10 +55,8 @@ class FrostingMainBoard:
 
         # Endstops
         GPIO.setmode(GPIO.BCM)  # Use GPIO pin numbering
-        GPIO.setup(x_endstop_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        self.x_endstop = GPIO.input(x_endstop_pin)
-        GPIO.setup(y_endstop_pin, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-        self.y_endstop = GPIO.input(y_endstop_pin)
+        GPIO.setup(self.x_endstop, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+        GPIO.setup(self.y_endstop, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
     def home_x_axis(self, timeout: int = 10, backoff_mm: int = -2) -> bool:
         """
@@ -68,7 +66,7 @@ class FrostingMainBoard:
         """
         # move x axis to limit switch
         timer = time.time()
-        while not self.x_endstop == GPIO.HIGH:
+        while not GPIO.input(self.x_endstop) == GPIO.HIGH:
             if time.time()-timer > timeout:
                 print('X home timed out.')
                 self.x_axis.disable()
@@ -89,7 +87,7 @@ class FrostingMainBoard:
         """
         # move y axis to limit switch
         timer = time.time()
-        while not self.y_endstop == GPIO.HIGH:
+        while not GPIO.input(self.y_endstop) == GPIO.HIGH:
             if time.time() - timer > timeout:
                 print('Y home timed out.')
                 self.y_axis.disable()

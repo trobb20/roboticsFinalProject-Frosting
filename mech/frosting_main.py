@@ -13,4 +13,17 @@
 from frosting_board import FrostingMainBoard
 import numpy as np
 
-main_board = FrostingMainBoard()
+def main():
+    main_board = FrostingMainBoard()
+
+    drawing = np.array([0, 0],
+                    [50, 0],
+                    [50, 50],
+                    [0, 50],
+                    [0, 0])
+
+    main_board.draw(drawing)
+    return
+
+if __name__ == '__main__':
+    main()

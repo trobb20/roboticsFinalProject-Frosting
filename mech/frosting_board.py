@@ -118,7 +118,7 @@ class FrostingMainBoard:
         else:
             return False
 
-    def x_y_move(self, dx: float, dy: float, speed: int, min_delay: float = 0.1):
+    def x_y_move(self, dx: float, dy: float, speed: int, min_delay: float = 0.01):
         """
         Moves x and y stepper motors linearly a
         distance dx and dy respectively, at speed
@@ -194,7 +194,7 @@ class FrostingMainBoard:
                     self.y_axis.step(dir_y)
                 else:
                     pass
-            time.sleep(min_delay)
+            #time.sleep(min_delay)
 
         return
 

@@ -58,7 +58,7 @@ class FrostingMainBoard:
         GPIO.setup(self.x_endstop, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
         GPIO.setup(self.y_endstop, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 
-    def home_x_axis(self, timeout: int = 10, backoff_mm: int = -2) -> bool:
+    def home_x_axis(self, timeout: int = 10, backoff_mm: int = 2) -> bool:
         """
         Homes x axis
         :param backoff_mm: number of mm to back off
@@ -76,14 +76,12 @@ class FrostingMainBoard:
             self.x_axis.step(-1)
             time.sleep(1/(self.default_speed * self.x_axis.steps_per_mm))
 
-        print('im here first')
-        time.sleep(2)
+        time.sleep(1) # wait for a bit
         self.x_axis.move(backoff_mm, self.default_speed)
-        print('im here')
         self.x_position = 0
         return True
 
-    def home_y_axis(self, timeout: int = 10, backoff_mm: int = -2) -> bool:
+    def home_y_axis(self, timeout: int = 10, backoff_mm: int = 2) -> bool:
         """
         Homes y axis
         :param backoff_mm: number of mm to back off
@@ -101,6 +99,7 @@ class FrostingMainBoard:
             self.y_axis.step(-1)
             time.sleep(1 / (self.default_speed * self.y_axis.steps_per_mm))
 
+        time.sleep(1)  # wait for a bit
         self.y_axis.move(backoff_mm, self.default_speed)
         self.y_position = 0
         return True

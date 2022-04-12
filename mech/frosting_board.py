@@ -198,32 +198,42 @@ class FrostingMainBoard:
 
         return
 
-    def go_to_location(self, go_to: np.ndarray, speed: int):
+    def go_and_extrude(self, command: np.ndarray, speed: int, extruder: FrostingDCMotor):
         """
         Goes to a location [x,y] using the x_y_move function.
+        Extrudes with motor throttle e.
         Updates board's location after moving
-        :param go_to: [x,y] coordinates to move to
+        :param command: [x,y,e] coordinates to move to and extrude
         :param speed: speed at which to move
+        :param extruder: which extruder to extrude with
         :return: None
         """
-        delta = go_to - self.location
-        self.x_y_move(delta[0], delta[1], speed)
+        x, y, e = command
+        go_to = np.array(([x, y]))
+        dx, dy = go_to - self.location
+
+        extruder.drive(e)
+        self.x_y_move(dx, dy, speed)
+
         self.location = go_to
         return
 
-    def draw(self, coordinates: np.ndarray, speed: int):
+    def draw(self, commands: np.ndarray, speed: int, extruder: FrostingDCMotor):
         """
-        Draws based on an array of coordinates of the format:
-            [[x1, y1],
-             [x2, y2],
+        Draws based on an array of commands of the format:
+            [[x1, y1, e1],
+             [x2, y2, e2],
              ...
-             [xn, yn]]
+             [xn, yn, en]]
         Using the go_to_location function.
-        :param coordinates: Coordinates of format [[x1, y1], ...[xn, yn]]
+        :param commands: Coordinates and extruder values
+         of format [[x1, y1, e1], ...[xn, yn, en]]
         :param speed: speed at which to move
+        :param extruder: extruder object to drive
         :return: None
         """
-        moves = len(coordinates)
+        moves = len(commands)
         for i in range(moves):
-            self.go_to_location(coordinates[i, :], speed)
+            self.go_and_extrude(commands[i, :], speed, extruder)
+        extruder.stop()
         return

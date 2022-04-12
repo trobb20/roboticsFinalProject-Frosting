@@ -15,14 +15,14 @@ import numpy as np
 
 def main():
     main_board = FrostingMainBoard()
+                    #    X  Y  E
+    drawing = np.array(([0, 0, 0],
+                    [50, 0, 1],
+                    [50, 50, 0.7],
+                    [0, 50, 0],
+                    [0, 0, 0]))
 
-    drawing = np.array(([0, 0],
-                    [50, 0],
-                    [50, 50],
-                    [0, 50],
-                    [0, 0]))
-
-    main_board.draw(drawing, int(input('Speed: ')))
+    main_board.draw(drawing, int(input('Speed: ')), main_board.white_extruder)
     return
 
 if __name__ == '__main__':

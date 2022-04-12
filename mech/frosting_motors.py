@@ -103,19 +103,19 @@ class FrostingDCMotor:
     def drive(self, dc: float):
         """
         Drive the motor at duty cycle dc. Negative values make the motor go backwards.
-        :param dc: duty cycle from -100% to 100%
+        :param dc: duty cycle from -1 to 1
         :return: None
         """
         # Cap the dc
-        if dc > 100:
-            dc = 100
-        elif dc < -100:
-            dc = -100
+        if dc > 1:
+            dc = 1
+        elif dc < -1:
+            dc = -1
         elif dc == 0:
             self.stop()
             return
 
-        self.motor_object.throttle = dc/100
+        self.motor_object.throttle = dc
         return
 
     def stop(self):

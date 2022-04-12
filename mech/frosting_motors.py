@@ -56,7 +56,7 @@ class FrostingStepper:
         :param speed: Speed in mm/s to move at
         :return: None
         """
-        steps = int(dist * self.steps_per_mm)   # number of steps to move
+        steps = int(abs(dist) * self.steps_per_mm)   # number of steps to move
         delay = 1/(speed * self.steps_per_mm)   # seconds per step
         if dist < 0:
             direction = stepper.BACKWARD

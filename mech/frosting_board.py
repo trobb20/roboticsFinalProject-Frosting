@@ -75,7 +75,9 @@ class FrostingMainBoard:
             self.x_axis.step(-1)
             time.sleep(1/(self.default_speed * self.x_axis.steps_per_mm))
 
+        print('im here first')
         self.x_axis.move(backoff_mm, self.default_speed)
+        print('im here')
         self.x_position = 0
         return True
 

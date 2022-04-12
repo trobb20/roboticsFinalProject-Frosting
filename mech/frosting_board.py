@@ -61,6 +61,7 @@ class FrostingMainBoard:
     def home_x_axis(self, timeout: int = 10, backoff_mm: int = -2) -> bool:
         """
         Homes x axis
+        :param backoff_mm: number of mm to back off
         :param timeout: default number of seconds before timing out with no home
         :return: True if homed, False otherwise
         """
@@ -76,6 +77,7 @@ class FrostingMainBoard:
             time.sleep(1/(self.default_speed * self.x_axis.steps_per_mm))
 
         print('im here first')
+        time.sleep(2)
         self.x_axis.move(backoff_mm, self.default_speed)
         print('im here')
         self.x_position = 0
@@ -84,6 +86,7 @@ class FrostingMainBoard:
     def home_y_axis(self, timeout: int = 10, backoff_mm: int = -2) -> bool:
         """
         Homes y axis
+        :param backoff_mm: number of mm to back off
         :param timeout: default number of seconds before timing out with no home
         :return: True if homed, False otherwise
         """

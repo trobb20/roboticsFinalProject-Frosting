@@ -22,7 +22,7 @@ def main():
                     [0, 50],
                     [0, 0]))
 
-    main_board.draw(drawing)
+    main_board.draw(drawing, int(input('Speed: ')))
     return
 
 if __name__ == '__main__':

@@ -49,7 +49,7 @@ def main():
     # E = np.zeros(np.size(X))
     # drawing = np.array(([X, Y, E])).T
 
-    drawing = pd.read_csv('coords.csv').values
+    drawing = pd.read_csv('coords.csv').values[:, 0:3]
 
     main_board.draw(drawing, main_board.white_extruder)
 

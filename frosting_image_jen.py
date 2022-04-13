@@ -5,13 +5,12 @@ import cv2
 import numpy as np
 
 ## Airtable API ##
-api_key = "keyxxxxxxxxxxxxxx" # enter API key here!
+api_key = "keyxxxxxxxxxxxx" # enter API key here!
 headers = {"Authorization": "Bearer " + api_key}
-
-# contact Jennifer with your email so that she can add you as a collaborator on Airtable!
-base_id = "appVtGBa7OdMUkrAI" # this is the base ID of Airtable database
-table_name = "Image Submission Form"
-url = "https://api.airtable.com/v0/" + base_id + "/Features?" + "sort%5B0%5D%5Bfield%5D=Created"
+base_id = "appuhn9X6CJyPGaho" # this is the base ID of Airtable database
+table_name = "image"
+query = "sort%5B0%5D%5Bfield%5D=Created"
+url = "https://api.airtable.com/v0/" + base_id + "/" +table_name + "?" + query
 
 params = ()
 response = requests.get(url, params=params, headers=headers)

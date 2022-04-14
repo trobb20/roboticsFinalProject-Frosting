@@ -90,7 +90,7 @@ def changeImgRatio(rows, cols, img):
 def getCoords(contours):
     coordinates = []
     
-    for line in ctrs[0]:
+    for line in contours[0]:
         for point_num in range(len(line)):
             coord = line[point_num][0]
             if point_num == 0:

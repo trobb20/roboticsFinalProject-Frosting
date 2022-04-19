@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #####################################################################
 ### Created by Megan Jenney
-### Last Edited 17 April 2022
+### Last Edited 19 April 2022
 ### 
 ### Intro to Robotics and Mechanics
 ### Tufts University Spring 2022
@@ -15,8 +15,8 @@
 ###     lines along which frosting will be dispensed.
 ### Background and image contours are sent as seaprate lists of
 ###     coordinates in G-code ( [x,y,e] ) format.
-### Images are assumed to have a white background and have clear
-###     outlines, such as clipart or a logo.
+### Images are assumed to have a white background and clear outlines,
+###     such as clipart or a logo.
 #####################################################################
 
 import numpy as np
@@ -24,11 +24,20 @@ import cv2
 import requests
 import urllib.request
 
-## function definitions
-def imgFromAirtable():
+def __imgFromAirtable():
+    """
+    Get last image submitted to Airtable form.
+
+    Requires existence of text file containing the API key of a user
+    with Airtable base edit access.
+
+    Returns
+    -------
+    np.ndarray
+        Array of image submitted in grayscale.
+    """
     base_id = 'appuhn9X6CJyPGaho'
     img_table = 'image'
-    # read from file
     api_key = open('api_key.txt').read()
     headers = {"Authorization": "Bearer " + api_key}
 
@@ -44,7 +53,8 @@ def imgFromAirtable():
 
     return cv2.imread(img_file, cv2.IMREAD_GRAYSCALE)
 
-def rowsToAdd(pix_col, pix_row):
+def __rowsToAdd(pix_col, pix_row):
+    """Calculate number of blank rows to add to top and bottom of image."""
     in_pix_ratio = pix_col / 6
     corr_rows = in_pix_ratio * 7.5
     add_rows = abs(int(corr_rows) - pix_row)
@@ -58,7 +68,8 @@ def rowsToAdd(pix_col, pix_row):
     
     return (add_top, add_btm)
 
-def colsToAdd(pix_row, pix_col):
+def __colsToAdd(pix_row, pix_col):
+    """Calculate number of blank columns to add to left and right of image."""
     in_pix_ratio = pix_row / 7.5
     corr_cols = in_pix_ratio * 6
     add_cols = abs(int(corr_cols) - pix_col)
@@ -72,7 +83,8 @@ def colsToAdd(pix_row, pix_col):
     
     return (add_lft, add_rgt)
 
-def addRows(add_top, add_btm, img):
+def __addRows(add_top, add_btm, img):
+    """Add calculated number of blank rows to top and bottom of image."""
     pix_col = np.shape(img)[1]
     
     top_shape = (add_top, pix_col)
@@ -82,7 +94,8 @@ def addRows(add_top, add_btm, img):
     
     return np.concatenate((top, img, btm))
 
-def addCols(add_lft, add_rgt, img):
+def __addCols(add_lft, add_rgt, img):
+    """Add calculated number of blank columns to left and right of image."""
     pix_row = np.shape(img)[0]
     
     lft_shape = (pix_row, add_lft)
@@ -92,21 +105,43 @@ def addCols(add_lft, add_rgt, img):
     
     return np.concatenate((lft, img, rgt), axis=1)
 
-def changeImgRatio(rows, cols, img):
+def __changeImgRatio(img):
+    """
+    Change ratio of image sides to ratio of pan dimensions.
+    
+    To refrain from stretching, adds blank columns or rows to top and
+        bottom or left and right of image, keeping the image
+        centered.
+
+    Parameters
+    ----------
+    img : np.ndarray
+        Array of pixels holding image to transform.
+    
+    Returns
+    -------
+    np.ndarray
+        Array of pixels with correct overall dimensions and original
+        image centered.
+    """
+    rows = np.shape(img)[0]
+    cols = np.shape(img)[1]
+    
     pan_ratio = 7.5 / 6
     img_ratio = rows / cols
 
     if img_ratio < pan_ratio:
-        add_top, add_btm = rowsToAdd(cols, rows)
-        return addRows(add_top, add_btm, img)
+        add_top, add_btm = __rowsToAdd(cols, rows)
+        return __addRows(add_top, add_btm, img)
         
     elif img_ratio > pan_ratio:
-        add_lft, add_rgt = colsToAdd(rows, cols)
-        return addCols(add_lft, add_rgt, img)
+        add_lft, add_rgt = __colsToAdd(rows, cols)
+        return __addCols(add_lft, add_rgt, img)
     else:
         return img
 
-def getToDimensions(img):
+def __getToDimensions(img):
+    """Resizes image so 1 pixel translates to a 1 mm square."""
     in_to_mm = 25.4
     pan_wth = 6 * in_to_mm
     pan_hgt = 7.5 * in_to_mm
@@ -117,10 +152,31 @@ def getToDimensions(img):
 
     return cv2.resize(img, pan_shape, wth_ratio, hgt_ratio, cv2.INTER_AREA)
 
-def getImgCoords(contours):
+def __getImgCoords(contours):
+    """
+    Transfer contour coordinates to G-code [x, y, e] format.
+    
+    The first and last 5 coordinates of each contour line have an e
+        value of 0, indicating no extrusion should occur. All other
+        line coordinates have an e value of 1, representing extrusion.
+    The last coordinate of the returned array returns the extruder to
+        its original position.
+
+    Parameters
+    ----------
+    contours : tuple
+        Set of contour lines and their coordinates. Size is equal to
+        the number of contour lines found.
+    
+    Returns
+    -------
+    np.ndarray
+        All coordinates for all lines in G-code format, including
+        return point at end.
+    """
     coordinates = []
     
-    for line in contours[0]:
+    for line in contours:
         num_coords = len(line)
         for point_num in range(num_coords):
             coord = line[point_num][0]
@@ -136,22 +192,23 @@ def getImgCoords(contours):
 
     return np.asarray(coordinates)
 
-def getImg():
-    grayscale_img = imgFromAirtable()
+def __getImg():
+    """Get coordinates of line contours from uploaded image."""
+    grayscale_img = __imgFromAirtable()
+    
     _, binary_img = cv2.threshold(grayscale_img, 128, 255, cv2.THRESH_BINARY)
     inv_img = cv2.bitwise_not(binary_img)
-    rows = np.shape(binary_img)[0]
-    cols = np.shape(binary_img)[1]
-    resized_img = changeImgRatio(rows, cols, inv_img).astype('uint8')
+    
+    resized_img = __changeImgRatio(inv_img).astype('uint8')
     cv2.imwrite("resized_image.jpeg", resized_img)
 
-    dim_img = getToDimensions(resized_img)
+    dim_img = __getToDimensions(resized_img)
     cv2.imwrite("dim_image.jpeg", dim_img)
 
     ctrs = cv2.findContours(dim_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    return (getImgCoords(ctrs), dim_img)
+    return (__getImgCoords(ctrs[0]), dim_img)
 
-def getPos(rows, cols, spacing):
+def __getPos(rows, cols, spacing):
     num_x_y = int(1 / spacing)
     x = np.linspace(0, cols, num_x_y)
     y = np.linspace(0, rows, num_x_y)
@@ -159,7 +216,8 @@ def getPos(rows, cols, spacing):
 
     return np.column_stack([X.ravel(), Y.ravel()]).astype(int)
 
-def reverseBgdLines(positions, spc_inv):
+def __reverseBgdLines(positions, spc_inv):
+    """Mirror order of coordinates for every other line."""
     rev_coords = []
     for i in range(spc_inv):
         temp_crd_list = positions[(i*spc_inv):(((i+1)*spc_inv))]
@@ -172,7 +230,8 @@ def reverseBgdLines(positions, spc_inv):
 
     return rev_coords
 
-def gcodeBgdCoords(coords, num_coords):
+def __gcodeBgdCoords(coords, num_coords):
+    """Apply G-code formatting to background coordinates."""
     coordinates = []
     for i in range(num_coords):
         if (i == 0) or ((num_coords - i) <= 10):
@@ -187,29 +246,59 @@ def gcodeBgdCoords(coords, num_coords):
 
     return np.asarray(coordinates)
 
-def getBgdCoords(positions, spacing):
-    num_coords = int(len(positions))
+def __getBgdCoords(positions, spacing):
+    """
+    Get background coordinates from contours covering cake face.
+    
+    Parameters
+    ----------
+    positions : list
+        List of all coordinates to cover full cake face.
+    spacing : float
+        Relative space between each coordinate.
+    
+    Returns
+    -------
+    np.ndarray
+        All coordinates to cover cake in G-code format, including
+        return point at end.
+    """
+    num_coords = int(len(positions) / 2)
     spc_inv = int(1/spacing)
 
-    rev_coords = reverseBgdLines(positions, spc_inv)
+    rev_coords = __reverseBgdLines(positions, spc_inv)
+        
+    return __gcodeBgdCoords(rev_coords, num_coords)
 
-    return gcodeBgdCoords(rev_coords, num_coords)
+def __getBgd(img):
+    """
+    Get coordinates of background contours to cover full cake face.
+    
+    Parameters
+    ----------
+    img : np.ndarray
+        Array for image obtained from __getImg method
 
-def getBgd(img):
+    Returns
+    -------
+    np.ndarray
+        All coordinates to cover cake in G-code format, including
+        return point at end.
+    """
     blank = np.zeros(img.shape, dtype='uint8')
 
     blank_rows = blank.shape[0]
     blank_cols = blank.shape[1]
     spacing_pt = .04
-    positions = getPos(blank_rows, blank_cols, spacing_pt)
+    positions = __getPos(blank_rows, blank_cols, spacing_pt)
 
-    return getBgdCoords(positions.tolist(), spacing_pt)
+    return __getBgdCoords(positions.tolist(), spacing_pt)
 
 def run():
-    img_coordinates, dim_img = getImg()
+    img_coordinates, dim_img = __getImg()
     np.savetxt("img_coordinates.csv", img_coordinates, delimiter=',')
 
-    bgd_coordinates = getBgd(dim_img)
+    bgd_coordinates = __getBgd(dim_img)
     np.savetxt("bgd_coordinates.csv", bgd_coordinates, delimiter=',')
 
 if __name__ == '__main__':

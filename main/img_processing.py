@@ -148,57 +148,60 @@ def sendToAPI(coordinates, base_id, table_name, api_key):
     at.update(record["id"], fields)
     print('sent coords to api')
 
+def run():
+    ## get coordinate array for image frosting
+    # get image
+    base_id = 'appuhn9X6CJyPGaho'
+    img_table = 'image'
+    ctrl_table = 'control'
+    api_key = open('api_key.txt').read()
+    headers = {"Authorization": "Bearer " + api_key}
 
-## get coordinate array for image frosting
-# get image
-base_id = 'appuhn9X6CJyPGaho'
-img_table = 'image'
-ctrl_table = 'control'
-api_key = 'keyxxxxxxxxxxxxxx'
-headers = {"Authorization": "Bearer " + api_key}
+    query = "sort%5B0%5D%5Bfield%5D=Created"
+    url = "https://api.airtable.com/v0/" + base_id + "/" + img_table + "?" + query
 
-query = "sort%5B0%5D%5Bfield%5D=Created"
-url = "https://api.airtable.com/v0/" + base_id + "/" + img_table + "?" + query
+    params = ()
+    response = requests.get(url, params=params, headers=headers)
+    at_resp = response.json()
 
-params = ()
-response = requests.get(url, params=params, headers=headers)
-at_resp = response.json()
+    print(at_resp)
 
-rcd_len = len(at_resp["records"])
-image_url = at_resp["records"][rcd_len-1]["fields"]["Image"][0]["url"]
-img_file,headers = urllib.request.urlretrieve(image_url)
-img = cv2.imread(img_file, cv2.IMREAD_GRAYSCALE)
+    rcd_len = len(at_resp["records"])
+    image_url = at_resp["records"][rcd_len-1]["fields"]["Image"][0]["url"]
+    img_file,headers = urllib.request.urlretrieve(image_url)
+    img = cv2.imread(img_file, cv2.IMREAD_GRAYSCALE)
 
-# make binary, invert, and resize image
-thresh, binary_img = cv2.threshold(img, 128, 255, cv2.THRESH_BINARY)
-inv_img = cv2.bitwise_not(binary_img)
-rows = np.shape(binary_img)[0]
-cols = np.shape(binary_img)[1]
-resized_img = changeImgRatio(rows, cols, inv_img).astype('uint8')
+    # make binary, invert, and resize image
+    thresh, binary_img = cv2.threshold(img, 128, 255, cv2.THRESH_BINARY)
+    inv_img = cv2.bitwise_not(binary_img)
+    rows = np.shape(binary_img)[0]
+    cols = np.shape(binary_img)[1]
+    resized_img = changeImgRatio(rows, cols, inv_img).astype('uint8')
 
-# save resized image
-cv2.imwrite("resized_image.jpeg", resized_img)
+    # save resized image
+    cv2.imwrite("resized_image.jpeg", resized_img)
 
-# get contours and coordinates with e values (0 between contours)
-ctrs = cv2.findContours(binary_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-img_coordinates = getImgCoords(ctrs)
+    # get contours and coordinates with e values (0 between contours)
+    ctrs = cv2.findContours(binary_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    img_coordinates = getImgCoords(ctrs)
 
-np.savetxt("img_coordinates.csv", img_coordinates, delimiter=',')
+    np.savetxt("img_coordinates.csv", img_coordinates, delimiter=',')
 
 
-## get coordinate array for background frosting
-blank = np.zeros(resized_img.shape, dtype='uint8')
+    ## get coordinate array for background frosting
+    blank = np.zeros(resized_img.shape, dtype='uint8')
 
-# create points
-blank_rows = blank.shape[0]
-blank_cols = blank.shape[1]
-spacing_pt = .05
+    # create points
+    blank_rows = blank.shape[0]
+    blank_cols = blank.shape[1]
+    spacing_pt = .05
 
-positions = getPos(blank_rows, blank_cols, spacing_pt)
+    positions = getPos(blank_rows, blank_cols, spacing_pt)
 
-bgd_coordinates = getBgdCoords(positions.tolist(), spacing_pt)
-np.savetxt("bgd_coordinates.csv", bgd_coordinates, delimiter=',')
+    bgd_coordinates = getBgdCoords(positions.tolist(), spacing_pt)
+    np.savetxt("bgd_coordinates.csv", bgd_coordinates, delimiter=',')
 
+run()
 
 ## export coordinate arrays
 #sendToAPI(img_coordinates, base_id, ctrl_table, api_key)

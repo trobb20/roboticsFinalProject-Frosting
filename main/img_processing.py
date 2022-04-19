@@ -21,11 +21,29 @@
 
 import numpy as np
 import cv2
-#import airtable
 import requests
 import urllib.request
 
 ## function definitions
+def imgFromAirtable():
+    base_id = 'appuhn9X6CJyPGaho'
+    img_table = 'image'
+    # read from file
+    api_key = open('api_key.txt').read()
+    headers = {"Authorization": "Bearer " + api_key}
+
+    query = "sort%5B0%5D%5Bfield%5D=Created"
+    url = "https://api.airtable.com/v0/" + base_id + "/" + img_table + "?" + query
+
+    params = ()
+    response = requests.get(url, params=params, headers=headers).json()
+
+    rcd_len = len(response["records"])
+    image_url = response["records"][rcd_len-1]["fields"]["Image"][0]["url"]
+    img_file, headers = urllib.request.urlretrieve(image_url)
+
+    return cv2.imread(img_file, cv2.IMREAD_GRAYSCALE)
+
 def rowsToAdd(pix_col, pix_row):
     in_pix_ratio = pix_col / 6
     corr_rows = in_pix_ratio * 7.5
@@ -87,7 +105,52 @@ def changeImgRatio(rows, cols, img):
         return addCols(add_lft, add_rgt, img)
     else:
         return img
+
+def getToDimensions(img):
+    in_to_mm = 25.4
+    pan_wth = 6 * in_to_mm
+    pan_hgt = 7.5 * in_to_mm
+    pan_shape = int(pan_wth), int(pan_hgt)
+
+    wth_ratio = pan_wth / img.shape[0]
+    hgt_ratio = pan_hgt / img.shape[1]
+
+    return cv2.resize(img, pan_shape, wth_ratio, hgt_ratio, cv2.INTER_AREA)
+
+def getImgCoords(contours):
+    coordinates = []
     
+    for line in contours[0]:
+        num_coords = len(line)
+        for point_num in range(num_coords):
+            coord = line[point_num][0]
+            if (point_num == 0) or (num_coords-point_num <=5):
+                coord = np.append(coord, 0)
+            else:
+                coord = np.append(coord, 1)
+        
+            coordinates.append(coord)
+
+    # return to original pos
+    coordinates.append([0,0,0])
+
+    return np.asarray(coordinates)
+
+def getImg():
+    grayscale_img = imgFromAirtable()
+    _, binary_img = cv2.threshold(grayscale_img, 128, 255, cv2.THRESH_BINARY)
+    inv_img = cv2.bitwise_not(binary_img)
+    rows = np.shape(binary_img)[0]
+    cols = np.shape(binary_img)[1]
+    resized_img = changeImgRatio(rows, cols, inv_img).astype('uint8')
+    cv2.imwrite("resized_image.jpeg", resized_img)
+
+    dim_img = getToDimensions(resized_img)
+    cv2.imwrite("dim_image.jpeg", dim_img)
+
+    ctrs = cv2.findContours(dim_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    return (getImgCoords(ctrs), dim_img)
+
 def getPos(rows, cols, spacing):
     num_x_y = int(1 / spacing)
     x = np.linspace(0, cols, num_x_y)
@@ -96,112 +159,58 @@ def getPos(rows, cols, spacing):
 
     return np.column_stack([X.ravel(), Y.ravel()]).astype(int)
 
-def getImgCoords(contours):
+def reverseBgdLines(positions, spc_inv):
+    rev_coords = []
+    for i in range(spc_inv):
+        temp_crd_list = positions[(i*spc_inv):(((i+1)*spc_inv))]
+        if (i+1) % 2 == 0:
+            for j in reversed(range(spc_inv)):
+                rev_coords.append(temp_crd_list[j])
+        else:
+            for j in range(spc_inv):
+                rev_coords.append(temp_crd_list[j])
+
+    return rev_coords
+
+def gcodeBgdCoords(coords, num_coords):
     coordinates = []
-    
-    for line in contours[0]:
-        for point_num in range(len(line)):
-            coord = line[point_num][0]
-            if point_num == 0:
-                coord = np.append(coord, 0)
-            else:
-                coord = np.append(coord, 1)
+    for i in range(num_coords):
+        if (i == 0) or ((num_coords - i) <= 10):
+            coord = np.append(coords[i], 0)
+        else:
+            coord = np.append(coords[i], 1)
         
-            coordinates.append(coord)
+        coordinates.append(coord)
+
+    # return to original pos
+    coordinates.append([0,0,0])
 
     return np.asarray(coordinates)
 
 def getBgdCoords(positions, spacing):
-    coordinates = []
     num_coords = int(len(positions) / 2)
     spc_inv = int(1/spacing)
 
-    # reverse every other line
-    temp_coord_list = []
-    for i in range(spc_inv):
-        temp_list = positions[(i*spc_inv):(((i+1)*spc_inv))]
+    rev_coords = reverseBgdLines(positions, spc_inv)
         
-        if (i+1) % 2 == 0:
-            for j in reversed(range(spc_inv)):
-                temp_coord_list.append(temp_list[j])
-            
-        else:
-            for j in range(spc_inv):
-                temp_coord_list.append(temp_list[j])
+    return gcodeBgdCoords(rev_coords, num_coords)
 
-    # make gcode format with distinct lines
-    for i in range(num_coords):
-        if i % spc_inv == 0:
-            coord = np.append(temp_coord_list[i], 0)
-        else:
-            coord = np.append(temp_coord_list[i], 1)
-        
-        coordinates.append(coord)
-        
-    return np.asarray(coordinates)
+def getBgd(img):
+    blank = np.zeros(img.shape, dtype='uint8')
 
-def sendToAPI(coordinates, base_id, table_name, api_key):
-    at = airtable.Airtable(base_id, table_name, api_key)
-    
-    record = at.match("Name", "coordinates")
-    fields = {'Status': True}
-    at.update(record["id"], fields)
-    print('sent coords to api')
-
-def run():
-    ## get coordinate array for image frosting
-    # get image
-    base_id = 'appuhn9X6CJyPGaho'
-    img_table = 'image'
-    ctrl_table = 'control'
-    # read from file
-    api_key = open('api_key.txt').read()
-    headers = {"Authorization": "Bearer " + api_key}
-
-    query = "sort%5B0%5D%5Bfield%5D=Created"
-    url = "https://api.airtable.com/v0/" + base_id + "/" + img_table + "?" + query
-
-    params = ()
-    response = requests.get(url, params=params, headers=headers)
-    at_resp = response.json()
-
-    rcd_len = len(at_resp["records"])
-    image_url = at_resp["records"][rcd_len-1]["fields"]["Image"][0]["url"]
-    img_file,headers = urllib.request.urlretrieve(image_url)
-    img = cv2.imread(img_file, cv2.IMREAD_GRAYSCALE)
-
-    # make binary, invert, and resize image
-    thresh, binary_img = cv2.threshold(img, 128, 255, cv2.THRESH_BINARY)
-    inv_img = cv2.bitwise_not(binary_img)
-    rows = np.shape(binary_img)[0]
-    cols = np.shape(binary_img)[1]
-    resized_img = changeImgRatio(rows, cols, inv_img).astype('uint8')
-
-    # save resized image
-    cv2.imwrite("resized_image.jpeg", resized_img)
-
-    # get contours and coordinates with e values (0 between contours)
-    ctrs = cv2.findContours(binary_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    img_coordinates = getImgCoords(ctrs)
-
-    np.savetxt("img_coordinates.csv", img_coordinates, delimiter=',')
-
-
-    ## get coordinate array for background frosting
-    blank = np.zeros(resized_img.shape, dtype='uint8')
-
-    # create points
     blank_rows = blank.shape[0]
     blank_cols = blank.shape[1]
-    spacing_pt = .05
-
+    spacing_pt = .04
     positions = getPos(blank_rows, blank_cols, spacing_pt)
 
-    bgd_coordinates = getBgdCoords(positions.tolist(), spacing_pt)
+    return getBgdCoords(positions.tolist(), spacing_pt)
+
+def run():
+    img_coordinates, dim_img = getImg()
+    np.savetxt("img_coordinates.csv", img_coordinates, delimiter=',')
+
+    bgd_coordinates = getBgd(dim_img)
     np.savetxt("bgd_coordinates.csv", bgd_coordinates, delimiter=',')
 
-run()
-
-## export coordinate arrays
-#sendToAPI(img_coordinates, base_id, ctrl_table, api_key)
-#sendToAPI(bkgd_coordinates, base_id, ctrl_table, api_key)
+if __name__ == '__main__':
+    run()

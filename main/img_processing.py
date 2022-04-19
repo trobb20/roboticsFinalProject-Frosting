@@ -132,14 +132,13 @@ def __changeImgRatio(img):
     """
     rows = np.shape(img)[0]
     cols = np.shape(img)[1]
-
+    
     pan_ratio = 7.5 / 6
     img_ratio = rows / cols
 
     if img_ratio < pan_ratio:
         add_top, add_btm = __rowsToAdd(cols, rows)
         return __addRows(add_top, add_btm, img)
-
     elif img_ratio > pan_ratio:
         add_lft, add_rgt = __colsToAdd(rows, cols)
         return __addCols(add_lft, add_rgt, img)
@@ -183,7 +182,6 @@ def __getImgCoords(contours):
         return point at end.
     """
     coordinates = []
-
     for line in contours:
         num_coords = len(line)
         for point_num in range(num_coords):
@@ -205,6 +203,14 @@ def __getImg():
     """Get coordinates of line contours from uploaded image."""
     grayscale_img = __imgFromAirtable()
 
+    _, binary_img = cv2.threshold(grayscale_img, 128, 255, cv2.THRESH_BINARY)
+    inv_img = cv2.bitwise_not(binary_img)
+
+
+def __getImg():
+    """Get coordinates of line contours from uploaded image."""
+    grayscale_img = __imgFromAirtable()
+    
     _, binary_img = cv2.threshold(grayscale_img, 128, 255, cv2.THRESH_BINARY)
     inv_img = cv2.bitwise_not(binary_img)
 

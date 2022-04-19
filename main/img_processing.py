@@ -188,11 +188,11 @@ def gcodeBgdCoords(coords, num_coords):
     return np.asarray(coordinates)
 
 def getBgdCoords(positions, spacing):
-    num_coords = int(len(positions) / 2)
+    num_coords = int(len(positions))
     spc_inv = int(1/spacing)
 
     rev_coords = reverseBgdLines(positions, spc_inv)
-        
+
     return gcodeBgdCoords(rev_coords, num_coords)
 
 def getBgd(img):

@@ -11,25 +11,8 @@
 # https://docs.circuitpython.org/projects/motor/en/latest/index.html
 
 from frosting_board import FrostingMainBoard
-from img_processing import run
-import numpy as np
+from img_processing import run as run_img_processing
 import pandas as pd
-
-
-def split_shapes(commands: list, cutoff_distance: int) -> np.ndarray:
-    shapes = [[commands[0]]]
-    shape_iteration = 0
-
-    for i in range(len(commands) - 1):
-        distance = np.sqrt((commands[i + 1][1] - commands[i][1]) ** 2 + (commands[i + 1][0] - commands[i][0]) ** 2)
-        if distance > cutoff_distance:
-            shape_iteration += 1
-            shapes.append([])
-
-        shapes[shape_iteration].append(commands[i + 1])
-
-    return np.asarray(shapes)
-
 
 def main():
     main_board = FrostingMainBoard()
@@ -50,11 +33,23 @@ def main():
     # E = np.zeros(np.size(X))
     # drawing = np.array(([X, Y, E])).T
 
-    run()
+    # Get the image files
+    run_img_processing()
 
+    # Convert them to our drawings
     white_drawing = pd.read_csv('bgd_coordinates.csv').values[:, 0:3]
+    black_drawing = pd.read_csv('img_coordinates.csv').values[:, 0:3]
 
+    print('Starting frosting machine!')
+    print('Homing all...')
+    main_board.home_all()
+    print('Drawing white background...')
     main_board.draw(white_drawing, main_board.white_extruder)
+    print('Homing all...')
+    main_board.home_all()
+    print('Drawing black image...')
+    main_board.draw(black_drawing, main_board.black_extruder)
+    print('Done!')
 
     return
 

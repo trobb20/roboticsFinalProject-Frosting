@@ -152,9 +152,10 @@ def sim_frosting(path: np.ndarray, x_steps_per_mm: int, y_steps_per_mm: int):
 #                     [0, 50],
 #                     [0, 0]))
 
-path = pd.read_csv('coordinates.csv').values[:, 0:2]
+path = pd.read_csv('test_bgd_coordinates.csv').values[:, 0:2]
+#path = pd.read_csv('test_img_coordinates.csv').values[:, 0:2]
 # flips and orients commands in bottom left
-path = path * -1
-path = path - np.array((np.min(path[:, 0]), np.min(path[:, 1])))
+# path = path * -1
+# path = path - np.array((np.min(path[:, 0]), np.min(path[:, 1])))
 
-sim_frosting(path, 25, 25)
+sim_frosting(path, 10, 10)

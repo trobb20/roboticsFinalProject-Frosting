@@ -1,3 +1,6 @@
 
 *.xml
 *.iml
+api_key.txt
+*.csv
+*.jpeg

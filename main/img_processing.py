@@ -21,14 +21,14 @@
 
 import numpy as np
 import cv2
-import airtable
+#import airtable
 import requests
 import urllib.request
 
 ## function definitions
 def rowsToAdd(pix_col, pix_row):
-    in_pix_ratio = pix_col / 7.5
-    corr_rows = in_pix_ratio * 6
+    in_pix_ratio = pix_col / 6
+    corr_rows = in_pix_ratio * 7.5
     add_rows = abs(int(corr_rows) - pix_row)
     
     if not add_rows % 2 == 0:
@@ -41,8 +41,8 @@ def rowsToAdd(pix_col, pix_row):
     return (add_top, add_btm)
 
 def colsToAdd(pix_row, pix_col):
-    in_pix_ratio = pix_row / 6
-    corr_cols = in_pix_ratio * 7.5
+    in_pix_ratio = pix_row / 7.5
+    corr_cols = in_pix_ratio * 6
     add_cols = abs(int(corr_cols) - pix_col)
     
     if not add_cols % 2 == 0:
@@ -75,7 +75,7 @@ def addCols(add_lft, add_rgt, img):
     return np.concatenate((lft, img, rgt), axis=1)
 
 def changeImgRatio(rows, cols, img):
-    pan_ratio = 6 / 7.5
+    pan_ratio = 7.5 / 6
     img_ratio = rows / cols
 
     if img_ratio < pan_ratio:
@@ -154,6 +154,7 @@ def run():
     base_id = 'appuhn9X6CJyPGaho'
     img_table = 'image'
     ctrl_table = 'control'
+    # read from file
     api_key = open('api_key.txt').read()
     headers = {"Authorization": "Bearer " + api_key}
 
@@ -163,8 +164,6 @@ def run():
     params = ()
     response = requests.get(url, params=params, headers=headers)
     at_resp = response.json()
-
-    print(at_resp)
 
     rcd_len = len(at_resp["records"])
     image_url = at_resp["records"][rcd_len-1]["fields"]["Image"][0]["url"]

@@ -11,6 +11,7 @@
 # https://docs.circuitpython.org/projects/motor/en/latest/index.html
 
 from frosting_board import FrostingMainBoard
+from img_processing import run
 import numpy as np
 import pandas as pd
 
@@ -49,9 +50,11 @@ def main():
     # E = np.zeros(np.size(X))
     # drawing = np.array(([X, Y, E])).T
 
-    drawing = pd.read_csv('coords.csv').values[:, 0:3]
+    run()
 
-    main_board.draw(drawing, main_board.white_extruder)
+    white_drawing = pd.read_csv('bgd_coordinates.csv').values[:, 0:3]
+
+    main_board.draw(white_drawing, main_board.white_extruder)
 
     return
 

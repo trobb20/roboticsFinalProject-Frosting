@@ -78,12 +78,15 @@ class FrostingStepper:
 
 
 class FrostingDCMotor:
-    def __init__(self, kit: MotorKit, motor_number: int):
+    def __init__(self, kit: MotorKit, motor_number: int, extrude_modifier: float = 1):
         """
         Constructs a frosting dc motor
         :param kit: Adafruit MotorKit object. This is the board from which the steppers are controlled
         :param motor_number: DC motor number 1, 2, 3 or 4.
+        :param extrude_modifier: Modifies any drive() command by this value.
+                                 Ex: drive(1 * extrude_modifier)
         """
+        self.extrude_modifier = extrude_modifier
         self.kit = kit
         self.motor_number = motor_number
 
@@ -106,16 +109,17 @@ class FrostingDCMotor:
         :param dc: duty cycle from -1 to 1
         :return: None
         """
+        drive_value = dc * self.extrude_modifier
         # Cap the dc
-        if dc > 1:
-            dc = 1
-        elif dc < -1:
-            dc = -1
-        elif dc == 0:
+        if drive_value > 1:
+            drive_value = 1
+        elif drive_value < -1:
+            drive_value = -1
+        elif drive_value == 0:
             self.stop()
             return
 
-        self.motor_object.throttle = dc
+        self.motor_object.throttle = drive_value
         return
 
     def stop(self):

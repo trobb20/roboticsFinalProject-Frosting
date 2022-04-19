@@ -22,6 +22,10 @@ class FrostingMainBoard:
         # Parameters
         x_steps_per_mm = 10
         y_steps_per_mm = 10
+
+        white_extrude_modifier = 0.5
+        black_extrude_modifier = 0.3
+
         self.default_speed = 20
         self.x_endstop = 23  # GPIO23
         self.y_endstop = 24  # GPIO24
@@ -50,8 +54,8 @@ class FrostingMainBoard:
         self.y_axis = FrostingStepper(self.stepper_kit, 2, y_steps_per_mm)
 
         # Extruders
-        self.white_extruder = FrostingDCMotor(self.extruder_kit, 1)
-        self.black_extruder = FrostingDCMotor(self.extruder_kit, 2)
+        self.white_extruder = FrostingDCMotor(self.extruder_kit, 1, white_extrude_modifier)
+        self.black_extruder = FrostingDCMotor(self.extruder_kit, 2, black_extrude_modifier)
 
         # Endstops
         GPIO.setmode(GPIO.BCM)  # Use GPIO pin numbering

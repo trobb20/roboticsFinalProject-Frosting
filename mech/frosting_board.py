@@ -23,7 +23,7 @@ class FrostingMainBoard:
         x_steps_per_mm = 10
         y_steps_per_mm = 10
 
-        white_extrude_modifier = -0.5
+        white_extrude_modifier = -0.6
         black_extrude_modifier = 0.3
 
         self.default_speed = 20

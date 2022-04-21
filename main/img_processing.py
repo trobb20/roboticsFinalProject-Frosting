@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #####################################################################
 ### Created by Megan Jenney
-### Last Edited 19 April 2022
+### Last Edited 21 April 2022
 ### 
 ### Intro to Robotics and Mechanics
 ### Tufts University Spring 2022
@@ -202,17 +202,10 @@ def __getImgCoords(contours):
 def __getImg():
     """Get coordinates of line contours from uploaded image."""
     grayscale_img = __imgFromAirtable()
-
-    _, binary_img = cv2.threshold(grayscale_img, 128, 255, cv2.THRESH_BINARY)
-    inv_img = cv2.bitwise_not(binary_img)
-
-
-def __getImg():
-    """Get coordinates of line contours from uploaded image."""
-    grayscale_img = __imgFromAirtable()
     
     _, binary_img = cv2.threshold(grayscale_img, 128, 255, cv2.THRESH_BINARY)
     inv_img = cv2.bitwise_not(binary_img)
+    cv2.imwrite("binary_image.jpeg", inv_img)
 
     resized_img = __changeImgRatio(inv_img).astype('uint8')
     cv2.imwrite("resized_image.jpeg", resized_img)
@@ -221,6 +214,8 @@ def __getImg():
     cv2.imwrite("dim_image.jpeg", dim_img)
 
     ctrs = cv2.findContours(dim_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    ctr_img = cv2.drawContours(dim_img, ctrs[0], -1, (0,255,0), 3)
+    cv2.imwrite("contours.jpeg", ctr_img)
     return (__getImgCoords(ctrs[0]), dim_img)
 
 

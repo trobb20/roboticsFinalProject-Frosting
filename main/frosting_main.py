@@ -12,6 +12,7 @@
 
 from frosting_board import FrostingMainBoard
 from img_processing import run as run_img_processing
+from img_processing import waitForUnload
 import pandas as pd
 
 def main():
@@ -32,6 +33,9 @@ def main():
     # Y = r * np.sin(theta)
     # E = np.zeros(np.size(X))
     # drawing = np.array(([X, Y, E])).T
+
+    # wait for unload to finish
+    waitForUnload()
 
     # Get the image files
     run_img_processing()

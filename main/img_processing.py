@@ -24,6 +24,29 @@ import cv2
 import requests
 import urllib.request
 
+def __getFromAirtable(table_name, query):
+    base_id = 'appuhn9X6CJyPGaho'
+    api_key = open('api_key.txt').read()
+    headers = {"Authorization": "Bearer " + api_key}
+
+    url = "https://api.airtable.com/v0/" + base_id + "/" + table_name + "?" + query
+
+    return requests.get(url, params=(), headers=headers).json()
+
+def waitForUnload():
+    """Wait until unloading process has completed."""
+    ctrl_table = 'control'
+    query = "sort%5B0%5D%5Bfield%5D=Name"
+
+    rcd_to_get = 7 # when sorting by name, unload is the last record
+    in_position = False
+
+    while not in_position:
+        response = __getFromAirtable(ctrl_table, query)
+        unload = response['records'][rcd_to_get]['fields']['Select']
+        if unload == 'complete':
+            in_position = True
+
 
 def __imgFromAirtable():
     """
@@ -37,20 +60,14 @@ def __imgFromAirtable():
     np.ndarray
         Array of image submitted in grayscale.
     """
-    base_id = 'appuhn9X6CJyPGaho'
     img_table = 'image'
-    api_key = open('api_key.txt').read()
-    headers = {"Authorization": "Bearer " + api_key}
-
     query = "sort%5B0%5D%5Bfield%5D=Created"
-    url = "https://api.airtable.com/v0/" + base_id + "/" + img_table + "?" + query
 
-    params = ()
-    response = requests.get(url, params=params, headers=headers).json()
+    response = __getFromAirtable(img_table, query)
 
     rcd_len = len(response["records"])
     image_url = response["records"][rcd_len - 1]["fields"]["Image"][0]["url"]
-    img_file, headers = urllib.request.urlretrieve(image_url)
+    img_file, _ = urllib.request.urlretrieve(image_url)
 
     return cv2.imread(img_file, cv2.IMREAD_GRAYSCALE)
 
@@ -213,13 +230,14 @@ def __getImg():
     dim_img = __getToDimensions(resized_img)
     cv2.imwrite("dim_image.jpeg", dim_img)
 
-    ctrs = cv2.findContours(dim_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-    ctr_img = cv2.drawContours(dim_img, ctrs[0], -1, (0,255,0), 3)
+    ctrs, _ = cv2.findContours(dim_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    ctr_img = cv2.drawContours(dim_img, ctrs, -1, (0,255,0), 3)
     cv2.imwrite("contours.jpeg", ctr_img)
-    return (__getImgCoords(ctrs[0]), dim_img)
+    return (__getImgCoords(ctrs), dim_img)
 
 
 def __getPos(rows, cols, spacing):
+    """Get correct spacing for background lines."""
     num_x_y = int(1 / spacing)
     x = np.linspace(0, cols, num_x_y)
     y = np.linspace(0, rows, num_x_y)
@@ -319,4 +337,5 @@ def run():
 
 
 if __name__ == '__main__':
+    waitForUnload()
     run()

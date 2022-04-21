@@ -3,12 +3,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import time
-
-# data logging
-global bigListX, bigListY, iterListX, iterListY
-bigListX = []
-bigListY = []
+from main.img_processing import run as run_img_processing
 
 
 def x_y_move(loc: np.ndarray, dx: float, dy: float, x_steps_per_mm, y_steps_per_mm):
@@ -21,6 +16,9 @@ def x_y_move(loc: np.ndarray, dx: float, dy: float, x_steps_per_mm, y_steps_per_
     :param dx: distance to move in x (can be negative)
     :return: None
     """
+
+    stepsX = []
+    stepsY = []
 
     if dx > 0:
         dir_x = 1
@@ -74,22 +72,10 @@ def x_y_move(loc: np.ndarray, dx: float, dy: float, x_steps_per_mm, y_steps_per_
             loc[1] = loc[1] + (dir_y / y_steps_per_mm)
         else:
             pass
-        bigListX.append(loc[0])
-        bigListY.append(loc[1])
+        stepsX.append(loc[0])
+        stepsY.append(loc[1])
 
-    return loc
-
-
-def funny_sin(x):
-    return 15 * np.sin(0.2 * x) + x
-
-
-def exponential(x):
-    return 100 * (1 - np.e ** (-x / 30))
-
-
-def spiral(theta):
-    return 10 * theta
+    return loc, stepsX, stepsY
 
 
 def sim_frosting(path: np.ndarray, x_steps_per_mm: int, y_steps_per_mm: int):
@@ -97,13 +83,18 @@ def sim_frosting(path: np.ndarray, x_steps_per_mm: int, y_steps_per_mm: int):
     loc = np.zeros(2)
     pos[0, :] = loc
 
+    stepsX_all = []
+    stepsY_all = []
+
     # Simulation loop
     for i in range(len(pos)):
         dx = path[i, 0] - loc[0]
         dy = path[i, 1] - loc[1]
-        new_loc = x_y_move(loc, dx, dy, x_steps_per_mm, y_steps_per_mm)
+        new_loc, stepsX, stepsY = x_y_move(loc, dx, dy, x_steps_per_mm, y_steps_per_mm)
         pos[i, :] = new_loc
         loc = new_loc
+        stepsX_all = stepsX_all + stepsX
+        stepsY_all = stepsY_all + stepsY
 
     # Data processing and plotting
     num = [i for i in range(len(path))]
@@ -119,7 +110,7 @@ def sim_frosting(path: np.ndarray, x_steps_per_mm: int, y_steps_per_mm: int):
     ax1.set_ylabel('Y position (mm)')
     ax1.legend(['desired path', 'Simulated result'])
 
-    ax2.plot(bigListX, bigListY, color='k')
+    ax2.plot(stepsX_all, stepsY_all, color='k')
     ax2.set_title('Steps on Path')
     ax2.set_xlabel('X position (mm)')
     ax2.set_ylabel('Y position (mm)')
@@ -132,30 +123,22 @@ def sim_frosting(path: np.ndarray, x_steps_per_mm: int, y_steps_per_mm: int):
     plt.show()
 
 
-# Testing
+def main():
+    steps_per_mm = 10
 
-# Polar
-# theta = np.linspace(0.1, 2 * np.pi, 50)
-# r = spiral(theta)
-# X = r * np.cos(theta)
-# Y = r * np.sin(theta)
+    run_img_processing()
+    path = pd.read_csv('bgd_coordinates.csv').values[:, 0:2]
+    path2 = pd.read_csv('img_coordinates.csv').values[:, 0:2]
 
-# Cartesian
-# X = np.linspace(0.1, 100, 10)
-# Y = exponential(X)
+    # reorient
+    path = path * -1
+    path = path - np.array((np.min(path[:, 0]), np.min(path[:, 1])))
+    path2 = path2 * -1
+    path2 = path2 - np.array((np.min(path2[:, 0]), np.min(path2[:, 1])))
 
-# Path
-# path = np.array([X, Y]).T
-# path = np.array(([0, 0],
-#                     [50, 0],
-#                     [50, 50],
-#                     [0, 50],
-#                     [0, 0]))
+    sim_frosting(path, steps_per_mm, steps_per_mm)
+    sim_frosting(path2, steps_per_mm, steps_per_mm)
 
-path = pd.read_csv('test_bgd_coordinates.csv').values[:, 0:2]
-#path = pd.read_csv('test_img_coordinates.csv').values[:, 0:2]
-# flips and orients commands in bottom left
-# path = path * -1
-# path = path - np.array((np.min(path[:, 0]), np.min(path[:, 1])))
 
-sim_frosting(path, 10, 10)
+if __name__ == '__main__':
+    main()

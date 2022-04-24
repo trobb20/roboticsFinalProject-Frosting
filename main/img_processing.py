@@ -38,7 +38,7 @@ def waitForUnload():
     ctrl_table = 'control'
     query = "sort%5B0%5D%5Bfield%5D=Name"
 
-    rcd_to_get = 7 # when sorting by name, unload is the last record
+    rcd_to_get = 4 # when sorting by name, 'frosting position set' is 5th record
     in_position = False
 
     while not in_position:

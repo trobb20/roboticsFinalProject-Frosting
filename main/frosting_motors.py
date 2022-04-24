@@ -129,3 +129,15 @@ class FrostingDCMotor:
     def coast(self):
         self.motor_object.throttle = None
         return
+
+    def reset(self, reset_time: float = 6):
+        """
+        Resets the motor back to its starting position based on a reset_time
+        :param reset_time: default tested with 0.6 modifier
+        :return: None
+        """
+        start = time.time()
+        self.drive(-1)
+        while time.time() - start < reset_time:
+            pass
+        self.stop()

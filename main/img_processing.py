@@ -322,7 +322,7 @@ def __getBgd(img):
 
     blank_rows = blank.shape[0]
     blank_cols = blank.shape[1]
-    spacing_pt = .04
+    spacing_pt = .2
     positions = __getPos(blank_rows, blank_cols, spacing_pt)
 
     return __getBgdCoords(positions.tolist(), spacing_pt)

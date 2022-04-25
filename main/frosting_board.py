@@ -23,8 +23,8 @@ class FrostingMainBoard:
         x_steps_per_mm = 10
         y_steps_per_mm = 10
 
-        white_extrude_modifier = 0.6
-        black_extrude_modifier = 0.6
+        white_extrude_modifier = 0.65
+        black_extrude_modifier = 0.65
 
         self.default_speed = 20
         self.x_endstop = 23  # GPIO23
@@ -80,7 +80,7 @@ class FrostingMainBoard:
             self.x_axis.step(-1)
             time.sleep(1/(self.default_speed * self.x_axis.steps_per_mm))
 
-        time.sleep(1) # wait for a bit
+        time.sleep(1)  # wait for a bit
         self.x_axis.move(backoff_mm, self.default_speed)
         self.x_position = 0
         return True

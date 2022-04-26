@@ -18,11 +18,11 @@
 ### Images are assumed to have a white background and clear outlines,
 ###     such as clipart or a logo.
 #####################################################################
-
 import numpy as np
 import cv2
 import requests
 import urllib.request
+from airtable import Airtable
 
 def __getFromAirtable(table_name, query):
     base_id = 'appuhn9X6CJyPGaho'
@@ -326,6 +326,20 @@ def __getBgd(img):
     positions = __getPos(blank_rows, blank_cols, spacing_pt)
 
     return __getBgdCoords(positions.tolist(), spacing_pt)
+
+
+def write_done():
+    base_id = 'appuhn9X6CJyPGaho'
+    api_key = open('api_key.txt').read()
+    tableName = 'control'
+
+    table = Airtable(base_id, tableName, api_key)
+
+    record = table.match("Name", "frosting")
+    fields = {"Select": "complete"}
+    table.update(record['id'], fields)
+
+    return
 
 
 def run():

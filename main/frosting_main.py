@@ -12,7 +12,7 @@
 
 from frosting_board import FrostingMainBoard
 from img_processing import run as run_img_processing
-from img_processing import waitForUnload
+from img_processing import waitForUnload, write_done
 from e_stop import main as emergency_stop
 import pandas as pd
 import numpy as np
@@ -63,7 +63,10 @@ def main():
         main_board.y_axis.disable()
         main_board.white_extruder.coast()
         main_board.black_extruder.coast()
+        write_done()
+
         print('Done!')
+
     except KeyboardInterrupt:
         emergency_stop()
 

@@ -265,7 +265,7 @@ def __gcodeBgdCoords(coords, num_coords):
     """Apply G-code formatting to background coordinates."""
     coordinates = []
     for i in range(num_coords):
-        if (i == 0) or ((num_coords - i) <= 10):
+        if (i == 0):
             coord = np.append(coords[i], 0)
         else:
             coord = np.append(coords[i], 1)
@@ -322,7 +322,7 @@ def __getBgd(img):
 
     blank_rows = blank.shape[0]
     blank_cols = blank.shape[1]
-    spacing_pt = .15
+    spacing_pt = .10
     positions = __getPos(blank_rows, blank_cols, spacing_pt)
 
     return __getBgdCoords(positions.tolist(), spacing_pt)

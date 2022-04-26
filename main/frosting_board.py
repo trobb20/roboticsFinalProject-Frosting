@@ -24,7 +24,7 @@ class FrostingMainBoard:
         y_steps_per_mm = 10
 
         white_extrude_modifier = 0.75
-        black_extrude_modifier = 0.75
+        black_extrude_modifier = 0.80
 
         self.default_speed = 20
         self.x_endstop = 23  # GPIO23

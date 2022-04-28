@@ -1,4 +1,11 @@
-# ME35 FROSTING MECHANISM TEAM FINAL PROJECT
+# ME35: Robotics Final Project
+# Teddy Robbins, Tufts University 2022.
+#
+# frosting_motors.py
+#
+# These objects are used for controlling the stepper motors and
+# dc motors required to move and extrude frosting.
+#
 # NECESSARY FOR USE:
 # sudo pip3 install adafruit-circuitpython-motorkit
 # https://docs.circuitpython.org/projects/motorkit/en/latest/#

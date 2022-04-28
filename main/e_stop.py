@@ -1,3 +1,11 @@
+# ME35: Robotics Final Project
+# Teddy Robbins, Tufts University 2022.
+#
+# e_stop.py
+#
+# This script intends to emergency stop the robot by
+# turning off all motors.
+
 from frosting_board import FrostingMainBoard
 
 

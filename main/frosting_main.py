@@ -1,4 +1,10 @@
-# ME35 FROSTING MECHANISM TEAM FINAL PROJECT MAIN SCRIPT
+# ME35: Robotics Final Project
+# Teddy Robbins, Caroline Henley Tufts University 2022.
+#
+# frosting_main.py
+#
+# This is the main script for running the robot.
+#
 # NECESSARY FOR USE:
 # numpy
 # GPIO

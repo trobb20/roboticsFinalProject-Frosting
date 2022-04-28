@@ -1,4 +1,10 @@
-# Spaghetti code for simulating motor movement
+# ME35: Robotics Final Project
+# Teddy Robbins, Tufts University 2022.
+#
+# sim.py
+#
+# This script intends to simulate the robots movements given
+# an image uploaded to the airtable.
 
 import numpy as np
 import pandas as pd

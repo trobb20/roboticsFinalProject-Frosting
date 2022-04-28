@@ -1,4 +1,11 @@
-# ME35 FROSTING MECHANISM TEAM FINAL PROJECT
+# ME35: Robotics Final Project
+# Teddy Robbins, Caroline Henley Tufts University 2022.
+#
+# frosting_board.py
+#
+# This object controls the whole robot and contains the methods
+# and properties required for use.
+#
 # NECESSARY FOR USE:
 # numpy
 # GPIO
@@ -12,7 +19,7 @@
 
 from frosting_motors import FrostingStepper, FrostingDCMotor
 from adafruit_motorkit import MotorKit
-import RPi.GPIO as GPIO  # Import Raspberry Pi GPIO library
+import RPi.GPIO as GPIO
 import numpy as np
 import time
 

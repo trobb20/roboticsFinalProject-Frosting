@@ -10,15 +10,15 @@ Code for controlling the [frosting robot](https://www.youtube.com/watch?v=ddX_Pl
 
 ### Scripts:
 
-- sim.py
+- `sim.py`
   - Simulates the robot movement
-- img_processing.py
+- `img_processing.py`
   - Gets the image and returns the coordinates
-- frosting_main.py
+- `frosting_main.py`
   - controls the robot
-- frosting_board.py
+- `frosting_board.py`
   - contains the object for the methods and properties required for controlling the robot
-- frosting_motors.py
+- `frosting_motors.py`
   - contains the objects for using the adafruit motor controller boards
 
 ### Contributers:
